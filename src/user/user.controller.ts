@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseArrayPipe,
   Post,
   Put,
   Query,
@@ -13,8 +14,8 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { User } from './entities/user.entity';
 import { UserService } from './user.service';
+import { User } from './entities/user.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -55,6 +56,12 @@ export class UserController {
   @Put(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(Number(id), updateUserDto);
+  }
+  
+  @Delete('multiple')
+  multipleDelete(@Query('ids', new ParseArrayPipe({ items: String, separator: ',' })) ids: string[]) {
+    console.log("delete multi=> ", ids)
+    return this.userService.multipleDelete(ids)
   }
 
   @UseGuards(AuthGuard)
