@@ -133,4 +133,38 @@ export class PostController {
   delete(@Param('id') id: string) {
     return this.postService.delete(Number(id));
   }
+
+
+  // ckeditor upload
+  @Post('cke-upload')
+  @UseInterceptors(
+    FileInterceptor('upload', {
+      storage: storageConfig('ckeditor'),
+      fileFilter: (req, file, cb) => {
+        const ext = extname(file.originalname);
+        const allowedExtArr = ['.jpg', '.png', '.jpeg'];
+        if (!allowedExtArr.includes(ext)) {
+          req.fileValidationError = `Wrong extension type. Accepted file ext are: ${allowedExtArr.toString()}`;
+          cb(null, false);
+        } else {
+          const fileSize = parseInt(req.headers['content-length']);
+          if (fileSize > 1024 * 1024 * 5) {
+            req.fileValidationError =
+              'File size is too large. Accepted file size is less than 5 MB';
+            cb(null, false);
+          } else {
+            cb(null, true);
+          }
+        }
+      },
+    }),
+  )
+  ckeUpload(@Body() data: any, @UploadedFile() file: Express.Multer.File) {
+    console.log('data >>>', data);
+    console.log(file);
+    console.log(file.fieldname);
+    return {
+      'url': `${file.destination + '/' + file.filename}`
+    }
+  }
 }
