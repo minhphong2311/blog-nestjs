@@ -10,6 +10,7 @@ import {
   Put,
   Query,
   Req,
+  SetMetadata,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -24,13 +25,15 @@ import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { storageConfig } from 'helpers/config';
 import { extname } from 'path';
+import { Roles } from 'src/auth/decorator/roles.decorator';
 
 @ApiBearerAuth()
 @ApiTags('Users')
 @Controller('users')
 export class UserController {
   constructor(private userService: UserService) {}
-  @UseGuards(AuthGuard)
+
+  @Roles('Admin') //=> @SetMetadata('roles', ['Admin']) change custom decorator
   @ApiQuery({ name: 'page' })
   @ApiQuery({ name: 'item_per_page' })
   @ApiQuery({ name: 'search' })
@@ -40,44 +43,44 @@ export class UserController {
     return this.userService.findAll(query);
   }
 
-  @UseGuards(AuthGuard)
+  @Roles('Admin')
   @Get('profile')
   profile(@Req() req:any): Promise<User> {
     return this.userService.findOne(Number(req.user_data.id));
   }
 
-  @UseGuards(AuthGuard)
+  @Roles('Admin')
   @Get(':id')
   findOne(@Param('id') id: string): Promise<User> {
     return this.userService.findOne(Number(id));
   }
 
-  @UseGuards(AuthGuard)
+  @Roles('Admin')
   @Post()
   create(@Body() createUserDto: CreateUserDto): Promise<User> {
     return this.userService.create(createUserDto);
   }
 
-  @UseGuards(AuthGuard)
+  @Roles('Admin')
   @Put(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(Number(id), updateUserDto);
   }
   
+  @Roles('Admin')
   @Delete('multiple')
   multipleDelete(@Query('ids', new ParseArrayPipe({ items: String, separator: ',' })) ids: string[]) {
     console.log("delete multi=> ", ids)
     return this.userService.multipleDelete(ids)
   }
 
-  @UseGuards(AuthGuard)
+  @Roles('Admin')
   @Delete(':id')
   delete(@Param('id') id: string) {
     return this.userService.delete(Number(id));
   }
 
   @Post('upload-avatar')
-  @UseGuards(AuthGuard)
   @UseInterceptors(
     FileInterceptor('avatar', {
       storage: storageConfig('avatar'),
