@@ -4,8 +4,10 @@ import {
   Delete,
   Get,
   Param,
+  ParseArrayPipe,
   Post,
   Put,
+  Query,
   Req,
   UsePipes,
   ValidationPipe,
@@ -15,6 +17,7 @@ import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Public } from 'src/auth/decorator/public.decorator';
+import { FilterCategoryDto } from './dto/filter-category.dto';
 
 @Controller('categories')
 export class CategoryController {
@@ -22,8 +25,8 @@ export class CategoryController {
 
   @Public()
   @Get()
-  findAll(): Promise<Category[]> {
-    return this.categoryService.findAll();
+  findAll(@Query() query: FilterCategoryDto): Promise<any> {
+    return this.categoryService.findAll(query);
   }
 
   @Public()
@@ -42,6 +45,12 @@ export class CategoryController {
   @Put(':id')
   update(@Param('id') id: string, @Req() req: any, @Body() updateCategoryDto: UpdateCategoryDto){
     return this.categoryService.update(Number(id), updateCategoryDto);
+  }
+
+  @Delete('multiple')
+  multipleDelete(@Query('ids', new ParseArrayPipe({ items: String, separator: ',' })) ids: string[]) {
+    console.log("delete multi=> ", ids)
+    return this.categoryService.multipleDelete(ids)
   }
 
   @Delete(':id')

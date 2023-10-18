@@ -1,9 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './entities/category.entity';
-import { DeleteResult, Repository, UpdateResult } from 'typeorm';
+import { DeleteResult, In, Like, Repository, UpdateResult } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { FilterCategoryDto } from './dto/filter-category.dto';
 
 @Injectable()
 export class CategoryService {
@@ -11,8 +12,39 @@ export class CategoryService {
     @InjectRepository(Category) private categoryRepository: Repository<Category>,
   ) {}
 
-  async findAll(): Promise<Category[]> {
-    return await this.categoryRepository.find();
+  async findAll(query: FilterCategoryDto): Promise<any> {
+    const items_per_page = Number(query.items_per_page) || 10;
+    const page = Number(query.page) || 5;
+    const search = query.search || '';
+
+    const skip = (page - 1) * items_per_page;
+    const [res, total] = await this.categoryRepository.findAndCount({
+      where: [
+        {
+          name: Like('%' + search + '%'),
+        },
+        {
+          description: Like('%' + search + '%'),
+        },
+      ],
+      order: { created_at: 'DESC' },
+      take: items_per_page,
+      skip: skip,
+    });
+
+    const lastPage = Math.ceil(total / items_per_page);
+    const nextPage = page + 1 > lastPage ? null : page + 1;
+    const prevPage = page - 1 < 1 ? null : page - 1;
+
+    return {
+      data: res,
+      total,
+      currentPage: page,
+      nextPage,
+      prevPage,
+      lastPage,
+    };
+    // return await this.categoryRepository.find();
   }
 
   async findDetail(id: number): Promise<Category> {
@@ -40,5 +72,9 @@ export class CategoryService {
 
   async delete(id: number): Promise<DeleteResult> {
     return await this.categoryRepository.delete(id);
+  }
+
+  async multipleDelete(ids: string[]): Promise<DeleteResult> {
+    return await this.categoryRepository.delete({ id: In(ids) });
   }
 }
