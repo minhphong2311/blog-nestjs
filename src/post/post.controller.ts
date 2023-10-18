@@ -14,7 +14,6 @@ import {
   Delete,
   UsePipes,
   ValidationPipe,
-  ParseArrayPipe,
 } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -131,12 +130,6 @@ export class PostController {
   }
 
   @UseGuards(AuthGuard)
-  @Delete('multiple')
-  multipleDelete(@Query('ids', new ParseArrayPipe({ items: String, separator: ',' })) ids: string[]) {
-    console.log("delete multi=> ", ids)
-    return this.postService.multipleDelete(ids)
-  }
-  
   @Delete(':id')
   delete(@Param('id') id: string) {
     return this.postService.delete(Number(id));
