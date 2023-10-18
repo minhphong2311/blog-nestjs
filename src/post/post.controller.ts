@@ -24,6 +24,7 @@ import { PostService } from './post.service';
 import { FilterPostDto } from './dto/filter-post.dto';
 import { Post as PostEntity } from './entities/post.entity';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { Public } from 'src/auth/decorator/public.decorator';
 
 @Controller('posts')
 export class PostController {
@@ -75,13 +76,13 @@ export class PostController {
     });
   }
 
-  @UseGuards(AuthGuard)
+  @Public()
   @Get()
   findAll(@Query() query: FilterPostDto): Promise<any> {
     return this.postService.findAll(query);
   }
 
-  @UseGuards(AuthGuard)
+  @Public()
   @Get(':id')
   findDetail(@Param('id') id: string): Promise<PostEntity> {
     return this.postService.findDetail(Number(id));
